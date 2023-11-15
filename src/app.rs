@@ -1,12 +1,11 @@
-use std::fmt::Display;
-
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use serde_wasm_bindgen::to_value;
+use shared::JiraIssue;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 use log::info;
+
 
 #[wasm_bindgen]
 extern "C" {
@@ -19,35 +18,23 @@ struct GreetArgs {
     key: String
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
-struct JiraIssue {
-    id: String,
-    key: String,
-    url: String,
-    summary: String,
-    assignee_email: String,
-    time_tracked_all: i64,
+#[derive(Properties, PartialEq)]
+pub struct CardProps {
+    pub issue: JiraIssue
 }
 
-impl JiraIssue {
-    fn new(id: String, key: String, url: String, summary: String, assignee_email: String, time_tracked_all: i64) -> Self { Self { id, key, url, summary, assignee_email, time_tracked_all } }
-    fn empty() -> Self { 
-        Self { 
-            id: String::new(), 
-            key: String::new(), 
-            url: String::new(), 
-            summary: String::new(), 
-            assignee_email: String::new(), 
-            time_tracked_all: 0 } 
+#[function_component]
+fn Card(props: &CardProps) -> Html {
+    let key = props.issue.key.clone();
+    html! {             
+        <div id={ *key } class="card">
+            <div class="">
+                <h4><b>{"Key: "} { &*props.issue.key }  </b></h4>
+                <p>{"Summary: "} { &*props.issue.summary } </p>
+            </div>
+        </div>  
     }
 }
-
-impl Display for JiraIssue {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "({}: {})", self.key, self.summary)
-    }
-}
-
 
 #[function_component(App)]
 pub fn app() -> Html {
@@ -57,10 +44,10 @@ pub fn app() -> Html {
 
     let key = use_state(|| String::new());
     let error = use_state(|| String::new());
+    let issues = use_state(|| Box::new(Vec::new()));
 
-    let issue_value = use_state(|| JiraIssue::empty());
     {
-        let issue_value = issue_value.clone();
+        let issues = issues.clone();
         let key = key.clone();
         let key2 = key.clone();
         use_effect_with(key2,
@@ -74,13 +61,16 @@ pub fn app() -> Html {
                     info!("Hello2: {}", key.as_str());
                     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
                     let new_msg = invoke("get_issue", args).await;
-                    info!("Hello3: {:?}", new_msg);
+
                     let val: JiraIssue = match serde_wasm_bindgen::from_value(new_msg) {
                         Ok(v) => v,
                         Err(err) => { error.set(err.to_string());  JiraIssue::empty()},
                     };
-                    info!("Hello3: {:?}", val);
-                    issue_value.set(val);
+
+
+                    let mut vec = issues.as_ref().clone();
+                    vec.push(val);
+                    issues.set(Box::new(vec));
                 });
 
                 || {}
@@ -104,18 +94,18 @@ pub fn app() -> Html {
 
     html! {
         <main class="container">
-            <p>{"Click on the Tauri and Yew logos to learn more."}</p>
-
             <form class="row" onsubmit={get_issue}>
-                <input id="greet-input" ref={get_issue_input_ref} placeholder="Enter a name..." />
-                <button type="submit">{"Greet"}</button>
+                <input id="greet-input" ref={get_issue_input_ref} placeholder="Enter a key..." />
+                <button type="submit">{"Get"}</button>
             </form>
-            <div class="card">
-                <div class="">
-                    <h4><b>{"Key"} { &*issue_value. } </b></h4>
-                    <p>{"Summary"} </p>
-                </div>
-            </div> 
+            <div class = "row">
+                {
+                    issues.iter().map(|issue| {
+                        html!{<Card issue={issue}/>}
+                    }).collect::<Html>()
+                }
+            </div>
+            
 
 
         </main>

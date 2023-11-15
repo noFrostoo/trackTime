@@ -1,5 +1,5 @@
 [package]
-name = "timeTrack-ui"
+name = "time_track-ui"
 version = "0.0.0"
 edition = "2021"
 
@@ -16,6 +16,10 @@ material-yew = "0.3"
 wasm-logger = "0.2.0"
 log = "0.4.20"
 serde_json = "1.0"
+shared = {path = "shared"}
 
 [workspace]
-members = ["src-tauri"]
+members = [
+    "src-tauri",
+    "shared"
+]

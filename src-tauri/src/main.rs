@@ -1,9 +1,9 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::{collections::HashMap, sync::Mutex,};
+use shared::JiraIssue;
 use tauri::{State, api::{http::{ClientBuilder, Client, HttpRequestBuilder}, self}, Error, http::header::AUTHORIZATION};
-use serde_json::{Value};
+use serde_json::Value;
 use http_auth_basic::Credentials;
 use serde::{Deserialize, Serialize};
 
@@ -18,18 +18,6 @@ struct Configuration {
 struct JiraState {
     config: Configuration,
 }
-
-#[derive(Serialize, Deserialize, Debug)]
-struct JiraIssue {
-    id: String,
-    key: String,
-    url: String,
-    summary: String,
-    assignee_email: String,
-    time_tracked_all: i64,
-}
-
-
 
 #[tauri::command]
 fn get_mine_issues(jira_state: State<JiraState>) -> String {
@@ -48,11 +36,11 @@ async fn get_issue(key: String, jira_state: State<'_, JiraState>) -> Result<Jira
     let response = jira_state.config.client.send(request).await.map_err(|err| {err.to_string()})?.read().await.map_err(|err| {err.to_string()})?;
 
     Ok(JiraIssue{ 
-        id: response.data["id"].to_string(), 
-        key, 
-        url: response.data["self"].to_string(), 
-        summary: response.data["fields"]["summary"].to_string(), 
-        assignee_email: response.data["fields"]["assignee"]["emailAddress"].to_string(), 
+        id: Box::new(response.data["id"].to_string()), 
+        key: Box::new(key), 
+        url: Box::new(response.data["self"].to_string()), 
+        summary: Box::new(response.data["fields"]["summary"].to_string()), 
+        assignee_email: Box::new(response.data["fields"]["assignee"]["emailAddress"].to_string()), 
         time_tracked_all: response.data["fields"]["timespent"].as_i64().map_or(0, |v| v)
     })
 }
