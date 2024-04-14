@@ -18,12 +18,12 @@
 }
 
 .container {
-  margin: 0;
-  padding: 5px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row-reverse;
   justify-content: center;
   text-align: center;
+  align-items: stretch;
+  height: 95vh;
 }
 
 .logo {
@@ -39,9 +39,37 @@
 
 .row {
   display: flex;
-  justify-content: center;
+  flex-direction: row;
+  gap: 5px;
+  margin: 5px;
 }
 
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 5px;
+}
+
+.column-25 {
+  min-width: 25%;
+  max-width: 75%;
+}
+
+.column-75 {
+  min-width: 75%;
+  max-width: 75%;
+}
+
+.wrap-flex {
+  flex-wrap: wrap;
+}
+
+.divider-vertical {
+  border-left: 4px solid #424141;
+  border-radius: 5px;
+  min-height: 98vh;
+}
 
 .card {
   /* Add shadows to create the "card" effect */
@@ -50,11 +78,12 @@
   border-radius: 5px; /* 5px rounded corners */
   min-width: 250px;
   margin: 5px;
+  
 }
 
 /* On mouse-over, add a deeper shadow */
 .card:hover {
-  box-shadow: 0 8px 16px 0 rgba(219, 7, 7, 0.993);
+  box-shadow: 0 4px 8x 0 rgba(154, 40, 199, 0.993);
 }
 
 a {
