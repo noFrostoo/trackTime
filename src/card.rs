@@ -22,9 +22,9 @@ pub fn card(props: &CardProps) -> Html {
 
     html! {
         <div id={ key } onclick={on_clicked} class="card">
-            <div class="">
+            <div>
                 <h4><b>{"Name: "} { &*props.issue.name }  </b></h4>
-                <p>{"Summary: "} { &*props.issue.summary } </p>
+                <p> {"Time: "} { props.issue.time_tracked_all } </p>
             </div>
         </div>
     }

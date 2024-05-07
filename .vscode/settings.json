@@ -4,6 +4,11 @@
   },
   "cSpell.words": [
     "bindgen",
-    "TAURI"
+    "TAURI",
+    "Worklog",
+    "worklogs"
+  ],
+  "rust-analyzer.linkedProjects": [
+    "./src-tauri/Cargo.toml"
   ],
 }

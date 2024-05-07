@@ -18,3 +18,8 @@ create table if not exists worklog
     total_time   text   not null,
     foreign key(issue_id) references issue(id)
 );
+
+create table if not exists recent_issue
+(
+    name  text primary key not null
+);

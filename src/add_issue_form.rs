@@ -32,8 +32,8 @@ pub fn add_issue_form(props: &AddIssueProps) -> Html {
         <div>
             <form class="column wrap-flex" onsubmit={on_summit}>
                 <input id="greet-input" ref={name_input_ref} placeholder="Enter a key..." />
-                <input id="greet-input" ref={summary_input_ref} placeholder="Enter a key..." />
-            <button type="submit">{"Get"}</button>
+                <input id="greet-input" ref={summary_input_ref} placeholder="Enter summary..." />
+            <button type="submit">{"Add"}</button>
             </form>
         </div>
     }

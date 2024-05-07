@@ -1,4 +1,4 @@
-use std::{collections::HashMap, time::Duration};
+use std::time::Duration;
 
 use crate::add_issue_form::AddIssueForm;
 use crate::card::Card;
@@ -31,20 +31,47 @@ pub struct StartTrackingProps {
     name: String,
 }
 
-fn get_issues(issues: UseStateHandle<Box<HashMap<String, Issue>>>, error: UseStateHandle<String>) {
+fn get_issues(issues: UseStateHandle<Box<Vec<Issue>>>, error: UseStateHandle<String>) {
     let issues = issues.clone();
     let error = error.clone();
     spawn_local(async move {
         let issues = issues.clone();
         let get_value = invoke("get_issues", to_value(&EmptyArgs {}).unwrap()).await;
-        let val: HashMap<String, Issue> = match serde_wasm_bindgen::from_value(get_value) {
+        let val: Vec<Issue> = match serde_wasm_bindgen::from_value(get_value) {
             Ok(v) => v,
             Err(err) => {
                 error.set(err.to_string());
-                HashMap::new()
+                Vec::new()
             }
         };
         issues.set(Box::new(val));
+    });
+}
+
+fn get_tracing_info(tracking_issue: UseStateHandle<Option<String>>, error: UseStateHandle<String>, elapsed_time: UseStateHandle<Duration>) {
+    spawn_local(async move {
+        let args = to_value(&EmptyArgs {}).unwrap();
+        let get_value = invoke("get_elapsed_time", args).await;
+
+        let val: Duration = match serde_wasm_bindgen::from_value(get_value) {
+            Ok(v) => v,
+            Err(err) => {
+                error.set(err.to_string());
+                Duration::from_micros(0)
+            }
+        };
+        elapsed_time.set(val);
+
+        let args = to_value(&EmptyArgs {}).unwrap();
+        let get_value = invoke("get_tracing_issue_name", args).await;
+        let val: Option<String> = match serde_wasm_bindgen::from_value(get_value) {
+            Ok(v) => v,
+            Err(err) => {
+                error.set(err.to_string());
+                Some(err.to_string())
+            }
+        };
+        tracking_issue.set(val)
     });
 }
 
@@ -56,7 +83,7 @@ pub fn app() -> Html {
     let summary = use_state(|| String::new());
     let error = use_state(|| String::new());
 
-    let issues = use_state(|| Box::new(HashMap::new()));
+    let issues = use_state(|| Box::new(Vec::new()));
     let tracking_issue: UseStateHandle<Option<String>> = use_state(|| None);
     let elapsed_time = use_state(|| Duration::from_micros(0));
 
@@ -75,29 +102,9 @@ pub fn app() -> Html {
         let elapsed_time = elapsed_time.clone();
         use_interval(
             move || {
-                if tracking_issue.is_none() {
-                    return;
-                }
-
-                let error = error.clone();
-                let elapsed_time = elapsed_time.clone();
-                spawn_local(async move {
-                    let args = to_value(&EmptyArgs {}).unwrap();
-
-                    let get_value = invoke("get_elapsed_time", args).await;
-
-                    let val: Duration = match serde_wasm_bindgen::from_value(get_value) {
-                        Ok(v) => v,
-                        Err(err) => {
-                            error.set(err.to_string());
-                            Duration::from_micros(0)
-                        }
-                    };
-
-                    elapsed_time.set(val);
-                });
+                get_tracing_info(tracking_issue.clone(), error.clone(), elapsed_time.clone());
             },
-            5000,
+            999,
         );
     }
 
@@ -113,6 +120,24 @@ pub fn app() -> Html {
 
                 invoke("start_tracking_cmd", args).await;
                 tracking_issue.set(Some(*name.clone()));
+            });
+        })
+    };
+
+    let stop_tracking = {
+        let issues = issues.clone();
+        let error = error.clone();
+        let tracking_issue = tracking_issue.clone();
+        Callback::from(move |()| {
+            let tracking_issue = tracking_issue.clone();
+            let issues = issues.clone();
+            let error = error.clone();
+            spawn_local(async move {
+                let args = to_value(&EmptyArgs{}).unwrap();
+
+                invoke("stop_tracking_cmd", args).await;
+                tracking_issue.set(None);
+                get_issues(issues, error);
             });
         })
     };
@@ -154,10 +179,11 @@ pub fn app() -> Html {
     html! {
         <main class="container">
             <div class = "column column-25 wrap-flex">
-                <AddIssueForm add_issue={add_issue}/>
-
+                <div class = "row wrap-flex">
+                    <AddIssueForm add_issue={add_issue}/>
+                </div>
                 if tracking_issue.is_some() {
-                    <TracingCard name={tracking_issue.as_ref().unwrap().clone()} duration={*elapsed_time} />
+                    <TracingCard name={tracking_issue.as_ref().unwrap().clone()} duration={*elapsed_time} stop_tracking={stop_tracking.clone()} />
                 }
 
 
@@ -166,7 +192,7 @@ pub fn app() -> Html {
             <div class = "column column-75">
                 <div class = "row wrap-flex">
                     {
-                        issues.iter().map(|(_, issue)| {
+                        issues.iter().map(|issue| {
                             html!{<Card issue={issue} start_tracking={start_tracking.clone()} />}
                         }).collect::<Html>()
                     }

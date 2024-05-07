@@ -1,7 +1,9 @@
 use http_auth_basic::Credentials;
 use shared::Issue;
 use tauri::{
-    api::http::{Client, ClientBuilder, HttpRequestBuilder}, http::header::AUTHORIZATION, Error, State
+    api::http::{Client, ClientBuilder, HttpRequestBuilder},
+    http::header::AUTHORIZATION,
+    Error, State,
 };
 
 use crate::AppState;
@@ -33,7 +35,6 @@ pub fn setup_jira() -> Result<JiraConfiguration, Error> {
 
     Ok(config)
 }
-
 
 #[tauri::command(async)]
 pub async fn get_issue_jira(name: String, app_state: State<'_, AppState>) -> Result<Issue, String> {

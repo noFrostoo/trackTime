@@ -24,6 +24,8 @@
   text-align: center;
   align-items: stretch;
   height: 95vh;
+  width: 90%;
+  margin: 10px;
 }
 
 .logo {
@@ -52,13 +54,13 @@
 }
 
 .column-25 {
-  min-width: 25%;
-  max-width: 75%;
+  min-width: 15%;
+  max-width: 15%;
 }
 
 .column-75 {
-  min-width: 75%;
-  max-width: 75%;
+  min-width: 85%;
+  max-width: 85%;
 }
 
 .wrap-flex {
@@ -73,17 +75,16 @@
 
 .card {
   /* Add shadows to create the "card" effect */
-  box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.7);
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.7);
   transition: 0.3s;
-  border-radius: 5px; /* 5px rounded corners */
-  min-width: 250px;
+  border-radius: 10px; /* 5px rounded corners */
+  min-width: 200px;
   margin: 5px;
-  
 }
 
 /* On mouse-over, add a deeper shadow */
 .card:hover {
-  box-shadow: 0 4px 8x 0 rgba(154, 40, 199, 0.993);
+  box-shadow: 0 2px 4px 0 rgba(154, 40, 199, 0.993);
 }
 
 a {

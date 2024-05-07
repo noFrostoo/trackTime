@@ -59,13 +59,7 @@ pub struct Worklog {
 }
 
 impl Worklog {
-    pub fn new(
-        id: String,
-        issue_id: String,
-        start: u64,
-        end: u64,
-        total_time: u64,
-    ) -> Self {
+    pub fn new(id: String, issue_id: String, start: u64, end: u64, total_time: u64) -> Self {
         Self {
             id,
             issue_id,
